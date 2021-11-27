@@ -3,11 +3,17 @@
 
 int main()
 {
-    printf("%d\n", authentication("n3rsti", "123"));
-    printf("%d\n", authentication("bob", "123"));
-    printf("%d\n", authentication("maria", "dog123"));
-    printf("%d\n", authentication("n3rsasati", "123"));
+    char login[255], password[255];
 
+    puts("Enter login");
+    scanf("%s", login);
+    puts("Enter password");
+    scanf("%s", password);
+
+    if(authentication(login, password))
+        puts("\nAuthentication successful");
+    else
+        puts("\nAuthentication failed");
     return 0;
 
 }
