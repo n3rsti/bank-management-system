@@ -12,7 +12,6 @@ int main() {
     // Get value from stdin and check for errors
     fgets(dialog_buf, 128, stdin);
     long dialog_value = strtol(dialog_buf, NULL, 0);
-    printf("%ld\n", dialog_value);
     if (dialog_value == LONG_MIN || dialog_value == LONG_MAX) {
         exit(-1);
     }

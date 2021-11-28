@@ -17,10 +17,10 @@ int authentication(char login[], char password[]){
     FILE * pFile = fopen("db.txt", "r");
     result = fscanf(pFile, "%s", line);
     while(result != EOF){
-        if(strcmp((const char *) line, login) == 0){
+        if(strcmp(line, login) == 0){
             fscanf(pFile, "%s", line); // gets next line (password)
             fclose(pFile);
-            if(strcmp((char *) &line, password) == 0)
+            if(strcmp(line, password) == 0)
                 return 1;
             return 0;
         }
