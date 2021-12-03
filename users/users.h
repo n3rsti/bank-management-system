@@ -15,25 +15,31 @@ const char uppercase_letters[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
 
  Arguments: char login[], char password[]
  Return value:
-    1 if provided data is matching db.txt data
+    user_id if provided data is matching db.txt data
     0 if provided data is not matching db.txt data
 
  */
 int authentication(char login[], char password[]) {
     char line[255];
-    int result;
+    int result, id;
     FILE *pFile = fopen("db.txt", "r");
-    result = fscanf(pFile, "%s", line);
+    id = fscanf(pFile, "%s", line); // 1st line is id
+    result = fscanf(pFile, "%s", line); // 2nd line is username
     while (result != EOF) {
         if (strcmp(line, login) == 0) {
             fscanf(pFile, "%s", line); // gets next line (password)
             fclose(pFile);
             if (strcmp(line, password) == 0)
-                return 1;
+                return id;
             return 0;
         }
         fscanf(pFile, "%s",
                line); // this line is password, it gets skipped because we don't need it if login is incorrect
+        
+        
+        // id: id of NEXT user, result: username of NEXT user
+        id = fscanf(pFile, "%s",
+                    line);
         result = fscanf(pFile, "%s", line);
     }
     fclose(pFile);
@@ -93,17 +99,17 @@ int create_user(char login[], char password[]) {
  *  -3: password doesn't have any special symbol
  *
  * */
-int validate_password(char password[]){
+int validate_password(char password[]) {
     int containsUppercaseLetter = 0;
     if (strlen(password) < 10)
         return -1;
-    for(int i = 0; i < 26; i++){
-        if(strchr(password, uppercase_letters[i]) != NULL){
+    for (int i = 0; i < 26; i++) {
+        if (strchr(password, uppercase_letters[i]) != NULL) {
             containsUppercaseLetter = 1;
             break;
         }
     }
-    if(!containsUppercaseLetter){
+    if (!containsUppercaseLetter) {
         return -2;
     }
     for (int i = 0; i < 31; i++) {

@@ -18,5 +18,5 @@ def generate_random_password():
 
 with open("db.txt", "w") as file:
     for x in range(100):
-        file.write(f"{names[x]}\n{generate_random_password()}\n\n")
+        file.write(f"{x+1}\n{names[x]}\n{generate_random_password()}\n\n")
     file.close()

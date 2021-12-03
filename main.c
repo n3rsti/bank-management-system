@@ -26,7 +26,8 @@ int main() {
         scanf("%s", login);
         puts("Enter password: ");
         scanf("%s", password);
-        if (authentication(login, password))
+        int user_id = authentication(login, password);
+        if (user_id >= 1)
             puts("\nAuthentication successful");
         else
             puts("\nAuthentication failed");
