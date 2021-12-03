@@ -28,7 +28,7 @@ int main() {
         scanf("%s", password);
         int user_id = authentication(login, password);
         if (user_id >= 1)
-            puts("\nAuthentication successful");
+            printf(":%d:", user_id);
         else
             puts("\nAuthentication failed");
     } else {
@@ -59,7 +59,8 @@ int main() {
             password_validation = validate_password(password);
         }
 
-        if (create_user(login, password) ) {
+        int user_id = create_user(login, password);
+        if (user_id >= 1 ) {
             puts("\nAccount successfully created");
         } else {
             puts("\nUsername is already taken");

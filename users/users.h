@@ -2,6 +2,7 @@
 #define BANK_USERS_H
 
 #include <string.h>
+#include <limits.h>
 
 const char password_symbols[31] = {'~', '`', '!', ' ', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=',
                                    '{',
@@ -51,39 +52,52 @@ int authentication(char login[], char password[]) {
  * Check if user with provided login exists
  *
  * Return value:
- *      1 if user exists
- *      0 if user doesn't exist
+ *      0 if user exists
+ *      last user id if user doesn't exist
  *
  * */
 int check_user(FILE *pFile, char login[]) {
     char line[255];
+    char user_id[255]; //  for storing each user id value. final value is id of last user
+    int last_id;
+    fscanf(pFile, "%s", line);
     int result = fscanf(pFile, "%s", line);
     while (result != EOF) {
         if (strcmp(line, login) == 0)
-            return 1;
-        result = fscanf(pFile, "%s", line);
+            return 0;
+        fscanf(pFile, "%s", line); // password
+        fscanf(pFile, "%s", user_id); // id
+
+        result = fscanf(pFile, "%s", line); // NEXT user password
+
     }
-    return 0;
+
+    last_id = strtol(user_id, NULL, 0); // convert to int
+    if (last_id != LONG_MIN && last_id != LONG_MAX)
+        return last_id;
+
+    return -1;
 }
 
 /*
  * Creates user if user with provided login doesn't exist
  *
  * Return value:
- *      1 if user is created
+ *      user_id if user is created
  *      0 if user is not created
  *
  * */
 
 int create_user(char login[], char password[]) {
     FILE *pFile = fopen("db.txt", "a+");
-    if (check_user(pFile, login) == 0) {
-        fprintf(pFile, "%s\n%s\n\n", login, password);
+    int last_user_id = check_user(pFile, login); // see check_user return values
+    if (last_user_id >= 1) {
+        fprintf(pFile, "%d\n%s\n%s\n\n", (last_user_id + 1), login, password);
     } else {
         return 0;
     }
     fclose(pFile);
-    return 1;
+    return (last_user_id + 1);
 }
 
 /* Validate password from input
