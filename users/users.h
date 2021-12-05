@@ -18,29 +18,37 @@ const char uppercase_letters[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
  Return value:
     user_id if provided data is matching db.txt data
     0 if provided data is not matching db.txt data
+    -1 id conversion error
 
  */
 int authentication(char login[], char password[]) {
     char line[255];
-    int result, id;
-    FILE *pFile = fopen("db.txt", "r");
-    id = fscanf(pFile, "%s", line); // 1st line is id
+    char user_id[255]; //  for storing each user id value. it's returned if username and password are correct
+    int result;
+    FILE *pFile = fopen("data/db.txt", "r");
+    fscanf(pFile, "%s", user_id); // 1st line is id
     result = fscanf(pFile, "%s", line); // 2nd line is username
     while (result != EOF) {
         if (strcmp(line, login) == 0) {
             fscanf(pFile, "%s", line); // gets next line (password)
             fclose(pFile);
-            if (strcmp(line, password) == 0)
-                return id;
+            if (strcmp(line, password) == 0){
+                // convert user_id to int and return it
+                int id = strtol(user_id, NULL, 0); // convert to int
+                if (id != LONG_MIN && id != LONG_MAX)
+                    return id;
+                else
+                    return -1;
+            }
             return 0;
         }
         fscanf(pFile, "%s",
                line); // this line is password, it gets skipped because we don't need it if login is incorrect
-        
-        
-        // id: id of NEXT user, result: username of NEXT user
-        id = fscanf(pFile, "%s",
-                    line);
+
+
+        // id of NEXT user, result: username of NEXT user
+        fscanf(pFile, "%s",
+                    user_id);
         result = fscanf(pFile, "%s", line);
     }
     fclose(pFile);
@@ -59,7 +67,6 @@ int authentication(char login[], char password[]) {
 int check_user(FILE *pFile, char login[]) {
     char line[255];
     char user_id[255]; //  for storing each user id value. final value is id of last user
-    int last_id;
     fscanf(pFile, "%s", line);
     int result = fscanf(pFile, "%s", line);
     while (result != EOF) {
@@ -72,7 +79,7 @@ int check_user(FILE *pFile, char login[]) {
 
     }
 
-    last_id = strtol(user_id, NULL, 0); // convert to int
+    int last_id = strtol(user_id, NULL, 0); // convert to int
     if (last_id != LONG_MIN && last_id != LONG_MAX)
         return last_id;
 
@@ -89,7 +96,7 @@ int check_user(FILE *pFile, char login[]) {
  * */
 
 int create_user(char login[], char password[]) {
-    FILE *pFile = fopen("db.txt", "a+");
+    FILE *pFile = fopen("data/db.txt", "a+");
     int last_user_id = check_user(pFile, login); // see check_user return values
     if (last_user_id >= 1) {
         fprintf(pFile, "%d\n%s\n%s\n\n", (last_user_id + 1), login, password);
