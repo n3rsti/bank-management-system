@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "users/users.h"
 #include <limits.h>
+#include "users/users.h"
+#include "balance/balance.h"
 
 int main() {
     char dialog_buf[128];
@@ -28,7 +29,9 @@ int main() {
         scanf("%s", password);
         int user_id = authentication(login, password);
         if (user_id >= 1)
-            printf(":%d:", user_id);
+            printf("\nSuccessfully logged in"
+                   "\nUsername: %s"
+                   "\nBalance: %.2f\n", login, get_balance(user_id));
         else
             puts("\nAuthentication failed");
     } else {
