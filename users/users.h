@@ -71,7 +71,6 @@ int check_user(FILE *pFile, char login[]) {
     int result = fscanf(pFile, "%s", line);
     while (result != EOF) {
         if (strcmp(line, login) == 0) {
-            fclose(pFile);
             return 0;
         }
         fscanf(pFile, "%s", line); // password
@@ -80,7 +79,6 @@ int check_user(FILE *pFile, char login[]) {
         result = fscanf(pFile, "%s", line); // NEXT user password
 
     }
-    fclose(pFile);
     int last_id = strtol(user_id, NULL, 0); // convert to int
     if (last_id != LONG_MIN && last_id != LONG_MAX)
         return last_id;
