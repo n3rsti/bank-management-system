@@ -3,6 +3,9 @@
 
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <time.h>
+#include "../crypto/sha-256.c"
 
 const char password_symbols[31] = {'~', '`', '!', ' ', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=',
                                    '{',
@@ -11,6 +14,65 @@ const char password_symbols[31] = {'~', '`', '!', ' ', '@', '#', '$', '%', '^', 
 const char uppercase_letters[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
                                     'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
+const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";  
+
+/*
+ * Generate random string
+ * */
+char * generate_salt(size_t length) { // const size_t length, supra
+    int seed;
+    time_t tt;
+    seed = time(&tt);
+    srand(seed);
+    char *randomString = NULL;
+
+    if (length) {
+        randomString = malloc(length +1); // sizeof(char) == 1, cf. C99
+
+        if (randomString) {
+            int l = (int) (sizeof(charset) -1);
+            int key;  // one-time instantiation (static/global would be even better)
+            for (int n = 0;n < length;n++) {
+                key = rand() % l;   // no instantiation, just assignment, no overhead from sizeof
+                randomString[n] = charset[key];
+            }
+
+            randomString[length] = '\0';
+        }
+    }
+
+    return randomString;
+}
+/*
+ * Converts uint8_t hash to string
+ * */
+static void hash_to_string(char string[65], const uint8_t hash[32])
+{
+    size_t i;
+    for (i = 0; i < 32; i++) {
+        string += sprintf(string, "%02x", hash[i]);
+    }
+}
+
+/*
+ * Compares hash from file and hash created from given password (user input) and salt (file)
+ *
+ * Function returns strcmp return value for 2 hashes:
+ *  0: if hashes are the same
+ *  for more values see strcmp C docs
+ *
+ * */
+int validate_password_hash(char password[], char file_hash[], char salt[]){
+    struct Sha_256 sha_256;
+    char hash_string[64];
+    uint8_t hash[32];
+    sha_256_init(&sha_256, hash);
+    sha_256_write(&sha_256, password, strlen(password));
+    sha_256_write(&sha_256, salt, 16);
+    sha_256_close(&sha_256);
+    hash_to_string(hash_string, hash);
+    return strcmp(hash_string, file_hash);
+}
 /*
  Authenticate user using db.txt file and provided arguments
 
@@ -30,9 +92,12 @@ int authentication(char login[], char password[]) {
     result = fscanf(pFile, "%s", line); // 2nd line is username
     while (result != EOF) {
         if (strcmp(line, login) == 0) {
-            fscanf(pFile, "%s", line); // gets next line (password)
+            char salt[17]; // 16 (salt size) + 1 (\0)
+            fscanf(pFile, "%s", line); // gets next line (hash password)
+            fscanf(pFile, "%s", salt); // gets next line (salt)
             fclose(pFile);
-            if (strcmp(line, password) == 0){
+
+            if (validate_password_hash(password, line, salt) == 0){
                 // convert user_id to int and return it
                 int id = strtol(user_id, NULL, 0); // convert to int
                 if (id != LONG_MIN && id != LONG_MAX)
@@ -44,7 +109,8 @@ int authentication(char login[], char password[]) {
         }
         fscanf(pFile, "%s",
                line); // this line is password, it gets skipped because we don't need it if login is incorrect
-
+        fscanf(pFile, "%s",
+               line);
 
         // id of NEXT user, result: username of NEXT user
         fscanf(pFile, "%s",
