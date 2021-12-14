@@ -14,7 +14,7 @@ const char password_symbols[31] = {'~', '`', '!', ' ', '@', '#', '$', '%', '^', 
 const char uppercase_letters[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
                                     'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
-const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";  
+const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
 
 /*
  * Generate random string
@@ -55,23 +55,19 @@ static void hash_to_string(char string[65], const uint8_t hash[32])
 }
 
 /*
- * Compares hash from file and hash created from given password (user input) and salt (file)
- *
- * Function returns strcmp return value for 2 hashes:
- *  0: if hashes are the same
- *  for more values see strcmp C docs
+ * Returns char pointer with password + salt hash
  *
  * */
-int validate_password_hash(char password[], char file_hash[], char salt[]){
+char * generate_password_hash(char password[], char salt[]){
     struct Sha_256 sha_256;
-    char hash_string[64];
+    char * hash_string = malloc(sizeof(char) * 64);
     uint8_t hash[32];
     sha_256_init(&sha_256, hash);
     sha_256_write(&sha_256, password, strlen(password));
     sha_256_write(&sha_256, salt, 16);
     sha_256_close(&sha_256);
     hash_to_string(hash_string, hash);
-    return strcmp(hash_string, file_hash);
+    return hash_string;
 }
 /*
  Authenticate user using db.txt file and provided arguments
@@ -96,8 +92,7 @@ int authentication(char login[], char password[]) {
             fscanf(pFile, "%s", line); // gets next line (hash password)
             fscanf(pFile, "%s", salt); // gets next line (salt)
             fclose(pFile);
-
-            if (validate_password_hash(password, line, salt) == 0){
+            if (strcmp(generate_password_hash(password, salt), line) == 0){
                 // convert user_id to int and return it
                 int id = strtol(user_id, NULL, 0); // convert to int
                 if (id != LONG_MIN && id != LONG_MAX)
@@ -114,7 +109,7 @@ int authentication(char login[], char password[]) {
 
         // id of NEXT user, result: username of NEXT user
         fscanf(pFile, "%s",
-                    user_id);
+               user_id);
         result = fscanf(pFile, "%s", line);
     }
     fclose(pFile);
