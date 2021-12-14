@@ -134,7 +134,8 @@ int check_user(FILE *pFile, char login[]) {
         if (strcmp(line, login) == 0) {
             return 0;
         }
-        fscanf(pFile, "%s", line); // password
+        fscanf(pFile, "%s", line); // hash
+        fscanf(pFile, "%s", line); // salt
         fscanf(pFile, "%s", user_id); // id
 
         result = fscanf(pFile, "%s", line); // NEXT user password
@@ -160,11 +161,18 @@ int create_user(char login[], char password[]) {
     FILE *pFile = fopen("data/db.txt", "a+");
     int last_user_id = check_user(pFile, login); // see check_user return values
     if (last_user_id >= 1) {
-        fprintf(pFile, "%d\n%s\n%s\n\n", (last_user_id + 1), login, password);
+        FILE *pBalance = fopen("data/balance.txt", "a");
+        char * salt = generate_salt(16);
+        char * hash = generate_password_hash(password, salt);
+        fprintf(pFile, "%d\n%s\n%s\n%s\n\n", (last_user_id + 1), login, hash, salt);
+        fprintf(pBalance, "%d\n%d\n\n", (last_user_id + 1), 0);
+        fclose(pBalance);
     } else {
+        fclose(pFile);
         return 0;
     }
     fclose(pFile);
+
     return (last_user_id + 1);
 }
 
