@@ -54,5 +54,4 @@ dkms.conf
 .idea
 cmake-build-debug
 CMakeLists.txt
-data/db.txt
-data/balance.txt
+data/
