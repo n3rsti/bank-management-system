@@ -3,6 +3,7 @@
 1. Storing data
    * [users data](#users_data)
    * [balance data](#balance_data)
+   * [transactions data](#transactions_data)
 
 
 ### Storing data
@@ -30,3 +31,14 @@ Format:
 ```
 * **id**: generated in **users.h/check_user** (last_user_id + 1)
 * **balance**: when new user is created, balance value is set to 0
+  * balance is stored in format with 6 decimal places because having 
+  2 decimal places would require more calculations and updating balance would be slower
+
+<h4 id="transactions_data">Transactions data</h4>
+
+Format:
+```
+   payer_id: int
+   payee_id: int
+   amount: double
+```

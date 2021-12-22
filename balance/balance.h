@@ -17,7 +17,7 @@
 
 double get_balance(const int id) {
     char line[255];
-    int file_user_id;
+    unsigned int file_user_id;
     FILE *pFile = fopen("data/balance.txt", "r");
     int result = fscanf(pFile, "%s", line);
     while (result != EOF) {
@@ -48,14 +48,22 @@ double get_balance(const int id) {
 int update_balance(int payer_id, int payee_id, double amount) {
     char line[255];
     double line_double; // contains converted line to double so function can make calculations
-    int line_id; // contains id of current user in loop (updated in every iteration)
+    unsigned int line_id; // contains id of current user in loop (updated in every iteration)
 
     FILE * pFile = fopen("data/balance.txt", "r+");
     // create balance_temp.txt file
     FILE * pFileTemp = fopen("data/balance_temp.txt", "w");
 
     // scan first line: id
-    int result = fscanf(pFile, "%d", &line_id);
+    int result = fscanf(pFile, "%s", line);
+
+    // convert id to long and check for conversion errors
+    line_id = strtol(line, NULL, 0);
+    if(line_id == LONG_MAX || line_id == LONG_MIN){
+        fclose(pFile);
+        fclose(pFileTemp);
+        return -1;
+    }
     while(result != EOF){
         fprintf(pFileTemp, "%d\n", line_id);
 
@@ -85,7 +93,16 @@ int update_balance(int payer_id, int payee_id, double amount) {
             fscanf(pFile, "%s", line);
             fprintf(pFileTemp, "%s\n", line);
         }
-        result = fscanf(pFile, "%d", &line_id);
+        result = fscanf(pFile, "%s", line);
+
+        // convert id to long and check for conversion errors
+        line_id = strtol(line, NULL, 0);
+        if(line_id == LONG_MAX || line_id == LONG_MIN){
+            fclose(pFile);
+            fclose(pFileTemp);
+            return -1;
+        }
+
 
     }
 
