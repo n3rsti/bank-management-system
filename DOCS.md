@@ -29,4 +29,4 @@ Format:
     balance: positive float number
 ```
 * **id**: generated in **users.h/check_user** (last_user_id + 1)
-* **balance**: when new user is created, valance value is set to 0
+* **balance**: when new user is created, balance value is set to 0
