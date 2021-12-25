@@ -28,43 +28,20 @@ int main() {
         puts("Enter password: ");
         scanf("%s", password);
         int user_id = authentication(login, password);
-        if (user_id >= 1)
+        if (user_id >= 1) {
             printf("\nSuccessfully logged in"
                    "\nUsername: %s"
                    "\nBalance: %.2f\n", login, get_balance(user_id));
+        }
         else
             puts("\nAuthentication failed");
     } else {
-        puts("\nEnter login: ");
-        scanf("%s", login);
-        while(strlen(login) < 6){
-            puts("\nLogin must be at least 6 letters long\nEnter login: ");
-            scanf("%s", login);
-        }
-        puts("\nEnter password: ");
-        scanf("%s", password);
-
-        int password_validation = validate_password(password);
-        while(password_validation != 1){
-            switch(password_validation){
-                case -1:
-                    puts("Password must be at least 10 characters long");
-                    break;
-                case -2:
-                    puts("Password must have at least 1 uppercase letter");
-                    break;
-                case -3:
-                    puts("Password must have at least 1 special symbol");
-                    break;
-            }
-            puts("\nEnter password: ");
-            scanf("%s", password);
-            password_validation = validate_password(password);
-        }
-
-        int user_id = create_user(login, password);
+        unsigned user_id = account_creation_dialog(login, password);
         if (user_id >= 1 ) {
             puts("\nAccount successfully created");
+            printf("\nSuccessfully logged in"
+                   "\nUsername: %s"
+                   "\nBalance: 0\n", login);
         } else {
             puts("\nUsername is already taken");
         }

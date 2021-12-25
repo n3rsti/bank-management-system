@@ -157,9 +157,9 @@ int check_user(FILE *pFile, char login[]) {
  *
  * */
 
-int create_user(char login[], char password[]) {
+unsigned int create_user(char login[], char password[]) {
     FILE *pFile = fopen("data/db.txt", "a+");
-    int last_user_id = check_user(pFile, login); // see check_user return values
+    unsigned int last_user_id = check_user(pFile, login); // see check_user return values
     if (last_user_id >= 1) {
         FILE *pBalance = fopen("data/balance.txt", "a");
         char * salt = generate_salt(16);
@@ -207,6 +207,37 @@ int validate_password(char password[]) {
             return 1;
     }
     return -3;
+}
+
+unsigned int account_creation_dialog(char * login, char * password){
+    puts("\nEnter login: ");
+    scanf("%s", login);
+    while(strlen(login) < 6){
+        puts("\nLogin must be at least 6 letters long\nEnter login: ");
+        scanf("%s", login);
+    }
+    puts("\nEnter password: ");
+    scanf("%s", password);
+
+    int password_validation = validate_password(password);
+    while(password_validation != 1){
+        switch(password_validation){
+            case -1:
+                puts("Password must be at least 10 characters long");
+                break;
+            case -2:
+                puts("Password must have at least 1 uppercase letter");
+                break;
+            case -3:
+                puts("Password must have at least 1 special symbol");
+                break;
+        }
+        puts("\nEnter password: ");
+        scanf("%s", password);
+        password_validation = validate_password(password);
+    }
+
+    return create_user(login, password);
 }
 
 #endif
