@@ -240,4 +240,25 @@ unsigned int account_creation_dialog(char * login, char * password){
     return create_user(login, password);
 }
 
+int logged_user_choice_dialog(){
+    long dialog_value;
+    char dialog_buf[128];
+    fgets(dialog_buf, 128, stdin);
+    dialog_value = strtol(dialog_buf, NULL, 0);
+    puts("\nAvailable options\n"
+         "1) Deposit\n"
+         "2) Withdraw\n"
+         "3) Send\n"
+         "4) Log out\n"
+         "\nSelect option: ");
+
+    if (dialog_value == LONG_MIN || dialog_value == LONG_MAX)
+        return -1;
+
+    if (dialog_value != 1 && dialog_value != 2 && dialog_value != 3)
+        return 0;
+
+    return dialog_value;
+}
+
 #endif
