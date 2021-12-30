@@ -32,6 +32,34 @@ int main() {
             printf("\nSuccessfully logged in"
                    "\nUsername: %s"
                    "\nBalance: %.2f\n", login, get_balance(user_id));
+            switch(logged_user_choice_dialog()){
+                case 1:
+                    dialog_value = deposit_dialog(user_id);
+                    if(dialog_value)
+                        printf("Deposit successful\n");
+                    else
+                        puts("There was an error\n");
+                    break;
+                case 2:
+                    dialog_value = withdraw_dialog(user_id);
+                    if(dialog_value == 1)
+                        printf("Withdrawal successful\n");
+                    else if(dialog_value == 0)
+                        puts("Not enough credits\n");
+                    else
+                        puts("There was an error");
+                    break;
+                case 3:
+                    dialog_value = transaction_dialog(user_id);
+                    if(dialog_value == -1)
+                        puts("There was an error");
+                    break;
+                case 4:
+                    puts("Logging out");
+                    exit(0);
+                case -1:
+                    break;
+            }
         }
         else
             puts("\nAuthentication failed");

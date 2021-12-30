@@ -41,6 +41,15 @@ double get_balance(const int id) {
 /*
  * Updates balance of both: payer, payee with amount argument
  *
+ * You can also use this function to update balance for ONE user by passing payee_id value as -1
+ *  Example:
+ *      update_balance(-1, 10, 50.5) ->  will add  50.5 to user with ID 10
+ *      update_balance(-1, 10, -50.5) -> will withdraw 50.5 from user with ID 10
+ *
+ *      Note: update_balance(-1, 10, 50.5) = update_balance(10, -1, -50.5), but I recommend setting payer_id as NULL because it's less confusing
+ *
+ *      IMPORTANT: update_balance function doesn't check if user has enough credits to withdraw. It needs to be done in other function
+ *
  * Return values:
  * 1: success
  * -1: error
@@ -124,6 +133,10 @@ int update_balance(int payer_id, int payee_id, double amount) {
  *
  * */
 int create_transaction(int payer_id, int payee_id, double amount) {
+    // update balance
+    if(update_balance(payer_id, payee_id, amount) == -1)
+        return -1;
+
     FILE *pFile = fopen("data/transactions.txt", "a");
     int result =  fprintf(pFile, "%d\n%d\n%f\n\n", payer_id, payee_id, amount);
     fclose(pFile);

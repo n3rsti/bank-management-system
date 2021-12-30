@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "../crypto/sha-256.c"
+#include "../balance/balance.h"
 
 const char password_symbols[31] = {'~', '`', '!', ' ', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=',
                                    '{',
@@ -125,7 +126,7 @@ int authentication(char login[], char password[]) {
  *      last user id if user doesn't exist
  *
  * */
-int check_user(FILE *pFile, char login[]) {
+int check_user_by_login(FILE *pFile, char login[]) {
     char line[255];
     char user_id[255]; //  for storing each user id value. final value is id of last user
     fscanf(pFile, "%s", line);
@@ -148,6 +149,33 @@ int check_user(FILE *pFile, char login[]) {
     return -1;
 }
 
+int get_user_id(char username[]){
+    char line[255];
+    char string_user_id[255];
+    FILE * pFile = fopen("data/db.txt", "r");
+    fscanf(pFile, "%s", string_user_id);
+    int result = fscanf(pFile, "%s", line);
+    while(result != EOF){
+        if(strcmp(line, username) == 0){
+            int user_id = strtol(string_user_id, NULL, 0);
+            if(user_id != LONG_MAX && user_id != LONG_MIN)
+                return user_id;
+            return -1;
+        }
+
+
+        // skip 2 lines which are not username nor id
+        fscanf(pFile, "%s", line);
+        fscanf(pFile, "%s", line);
+
+        fscanf(pFile, "%s", string_user_id);
+
+        result = fscanf(pFile, "%s", line);
+    }
+
+    return 0;
+
+}
 /*
  * Creates user if user with provided login doesn't exist
  *
@@ -159,7 +187,7 @@ int check_user(FILE *pFile, char login[]) {
 
 unsigned int create_user(char login[], char password[]) {
     FILE *pFile = fopen("data/db.txt", "a+");
-    unsigned int last_user_id = check_user(pFile, login); // see check_user return values
+    unsigned int last_user_id = check_user_by_login(pFile, login); // see check_user return values
     if (last_user_id >= 1) {
         FILE *pBalance = fopen("data/balance.txt", "a");
         char * salt = generate_salt(16);
@@ -243,8 +271,6 @@ unsigned int account_creation_dialog(char * login, char * password){
 int logged_user_choice_dialog(){
     long dialog_value;
     char dialog_buf[128];
-    fgets(dialog_buf, 128, stdin);
-    dialog_value = strtol(dialog_buf, NULL, 0);
     puts("\nAvailable options\n"
          "1) Deposit\n"
          "2) Withdraw\n"
@@ -252,6 +278,10 @@ int logged_user_choice_dialog(){
          "4) Log out\n"
          "\nSelect option: ");
 
+    scanf("%c", (char *) stdin); // clear stdin from trailing '\n'
+
+    fgets(dialog_buf, 128, stdin);
+    dialog_value = strtol(dialog_buf, NULL, 0);
     if (dialog_value == LONG_MIN || dialog_value == LONG_MAX)
         return -1;
 
@@ -260,5 +290,112 @@ int logged_user_choice_dialog(){
 
     return dialog_value;
 }
+/*
+ * Return code meanings:
+ *  1: puts "Deposit successful"
+ * -1: puts "There was an error"
+ *
+ * */
+int deposit_dialog(int user_id){
+    double amount;
+    char dialog_buf[128];
 
+    puts("Enter amount: ");
+
+    fgets(dialog_buf, 128, stdin);
+    amount = strtod(dialog_buf, NULL);
+    if (amount == HUGE_VAL)
+        return -1;
+
+    if (amount <= 0){
+        puts("Amount has to be larger than 0");
+        return -1;
+    }
+
+
+
+    return update_balance(-1, user_id, amount);
+}
+
+/*
+ * Return code meanings:
+ *  1: puts "Withdrawal successful"
+ *  0: puts "Not enough credits"
+ * -1: puts "There was an error"
+ *
+ * */
+int withdraw_dialog(int user_id){
+    double amount;
+    char dialog_buf[128];
+
+    puts("Enter amount: ");
+
+    fgets(dialog_buf, 128, stdin);
+    amount = strtod(dialog_buf, NULL);
+    if (amount == HUGE_VAL)
+        return -1;
+
+    if( amount <= 0) {
+        puts("Amount has to be larger than 0");
+        return -1;
+    }
+
+    if(get_balance(user_id) >= amount)
+        return update_balance(-1, user_id, -amount);
+    return 0;
+}
+/*
+ * Return code meanings:
+ * -1: puts "There was an error"
+ * every other message is displayed in this function (not main.c)
+ * */
+int transaction_dialog(int user_id){
+    char other_user_name[255];
+    int other_user_id;
+
+    // Get username from input
+    puts("Enter user name: ");
+    scanf("%s", other_user_name);
+
+    // Get user id
+    other_user_id = get_user_id(other_user_name);
+    if(other_user_id == 0){
+        printf("User %s doesn't exist\n", other_user_name);
+        return -1;
+    }
+    else if(other_user_id == -1) {
+        puts("There was an error");
+        return -1;
+    }
+
+    // Get amount and finish transaction
+    double amount;
+    char dialog_buf[255];
+
+    // Get amount from input and check for conversion errors
+    puts("\nEnter amount: ");
+
+    scanf("%c", (char *) stdin); // clear stdin from trailing '\n'
+    fgets(dialog_buf, 128, stdin);
+    amount = strtod(dialog_buf, NULL);
+    if (amount == HUGE_VAL)
+        return -1;
+
+    if(amount <= 0){
+        puts("Amount has to be larger than 0");
+        return 0;
+    }
+
+    if(get_balance(user_id) <= amount){
+        puts("Not enough credits");
+        return 0;
+    }
+
+    if(create_transaction(user_id, other_user_id, amount) == 1){
+        printf("Successfully sent %f to %s", amount, other_user_name);
+        return 1;
+    }
+    return -1;
+
+}
 #endif
